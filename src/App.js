@@ -140,36 +140,48 @@ function parseAst(ast, parentId = null) {
 }
 
 function App() {
-  const [astInput, setAstInput] = useState('');
+  const [rubyCode, setRubyCode] = useState('');
   const [nodes, setNodes, onNodesChange] = useNodesState([]);
   const [edges, setEdges, onEdgesChange] = useEdgesState([]);
 
-  const handleAstInputChange = (e) => {
-    setAstInput(e.target.value);
+  const handleRubyCodeChange = (e) => {
+    setRubyCode(e.target.value);
   };
 
-  const handleRenderAst = () => {
+  const handleRenderAst = async () => {
     try {
-      const ast = JSON.parse(astInput);
+      const response = await fetch(process.env.PARSE_URL || 'https://server.ruby-ast-visualizer.net/parse', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ code: rubyCode }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const ast = await response.json();
       let { nodes: parsedNodes, edges: parsedEdges } = parseAst(ast);
       parsedNodes = createTreeLayout(parsedNodes, parsedEdges);
       setNodes(parsedNodes);
       setEdges(parsedEdges);
     } catch (error) {
       console.error('Failed to parse AST:', error);
-      alert('Failed to parse AST. Please check your input.');
+      alert('Failed to parse AST. Please check your input and ensure the server is running.');
     }
   };
 
   return (
     <div style={{ display: 'flex', width: '100vw', height: '100vh' }}>
       <div style={{ width: '30%', padding: '20px', borderRight: '1px solid #ccc' }}>
-        <h2>Ruby AST Input</h2>
+        <h2>Ruby Code Input</h2>
         <textarea
-          value={astInput}
-          onChange={handleAstInputChange}
+          value={rubyCode}
+          onChange={handleRubyCodeChange}
           style={{ width: '100%', height: '300px' }}
-          placeholder="Paste your Ruby AST here..."
+          placeholder="Enter your Ruby code here..."
         />
         <button onClick={handleRenderAst} style={{ marginTop: '10px' }}>Render AST</button>
       </div>

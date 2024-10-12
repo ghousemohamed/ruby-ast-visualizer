@@ -139,7 +139,7 @@ function App() {
 
   const handleRenderAst = async () => {
     try {
-      const response = await fetch(process.env.PARSE_URL || 'http://localhost:4000/parse' || 'https://server.ruby-ast-visualizer.net/parse', {
+      const response = await fetch(process.env.PARSE_URL || 'https://server.ruby-ast-visualizer.net/parse', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
